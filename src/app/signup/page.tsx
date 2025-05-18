@@ -41,8 +41,8 @@ export default function Page() {
             </label>
           </div>
 
-          <button type="submit" className="w-full rounded-md bg-black text-white text-sm py-2 font-medium hover:bg-gray-900 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-300">
-            Register
+          <button disabled={isPending} type="submit" className="w-full rounded-md bg-black text-white text-sm py-2 font-medium hover:bg-gray-900 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-300">
+            {isPending ? "Registering..." : "Register"}
           </button>
 
           {errorMessage && (<p className="text-center text-sm text-red-500">{errorMessage}</p>)}
