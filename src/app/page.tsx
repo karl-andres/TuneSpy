@@ -40,6 +40,9 @@ export default function Page() {
           <Button variant="surface" size="3" asChild>
             <Link href="/signup">Register</Link>
           </Button>
+          <Button variant="surface" size="3" asChild>
+            <Link href="/signin">Login</Link>
+          </Button>
         </div>
       </div>
       {/* Main Content */}

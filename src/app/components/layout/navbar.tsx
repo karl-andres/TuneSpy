@@ -35,7 +35,7 @@ export default function NavBar({ className = "" }: { className?: string }) {
       <div className="flex flex-col px-4 gap-1">
         {links.map(({ name, icon: Icon, href }) => (
           <Link key={name} href={href}>
-            <div className="flex items-center gap-3 rounded-md p-2 text-sm font-medium text-white hover:bg-zinc-800 transition cursor-pointer">
+            <div className="flex items-center gap-3 rounded-md p-2 text-sm font-medium text-white hover:bg-zinc-800 transition">
               <Icon className="h-5 w-5" />
               {name}
             </div>
@@ -47,7 +47,7 @@ export default function NavBar({ className = "" }: { className?: string }) {
 
       {/* Sign Out */}
       <div className="flex flex-col px-4 gap-2">
-        <Button onClick={() => signout()} radius="full" size="4" variant="surface" highContrast>
+        <Button className="!cursor-pointer" onClick={() => signout()} radius="full" size="4" variant="surface" highContrast>
           Sign Out
         </Button>
       </div>
