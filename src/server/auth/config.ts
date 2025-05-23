@@ -37,32 +37,34 @@ export const authConfig = {
     Credentials({
       credentials: {
         email: {},
-        password: {}
+        password: {},
       },
       authorize: async (credentials) => {
         try {
-          const { email, password } = 
+          const { email, password } =
             await signInSchema.parseAsync(credentials);
 
-            const user = await db.user.findUnique({
-              where: {
-                email: email
-              }
-            })
+          const user = await db.user.findUnique({
+            where: {
+              email: email,
+            },
+          });
 
-          const passwordMatch = await bcrypt.compare(password, user?.password ?? "");
+          const passwordMatch = await bcrypt.compare(
+            password,
+            user?.password ?? "",
+          );
 
           if (!passwordMatch) {
             return null;
           }
 
           return user;
-
         } catch (error) {
           return null;
         }
-      }
-    })
+      },
+    }),
     /**
      * ...add more providers here.
      *
