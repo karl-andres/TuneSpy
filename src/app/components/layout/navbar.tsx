@@ -2,7 +2,7 @@
 'use client';
 
 import Link from "next/link";
-import { HomeIcon, PlusCircledIcon, ArchiveIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
+import { PlusCircledIcon, ArchiveIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
 import { Button, type IconProps } from "@radix-ui/themes";
 import { signout } from "../../actions/auth";
 import { type ComponentType } from "react";
@@ -14,7 +14,6 @@ type NavLink = {
 };
 
 const links: NavLink[] = [
-  { name: "Home", icon: HomeIcon, href: "/dashboard" },
   { name: "Create", icon: PlusCircledIcon, href: "/dashboard/create" },
   { name: "Library", icon: ArchiveIcon, href: "/dashboard/library" },
 ];
@@ -26,8 +25,8 @@ export default function NavBar({ className = "" }: { className?: string }) {
     >
       {/* Logo */}
       <div className="flex flex-row justify-start p-4 pt-8">
-        <Link className="relative inline-block w-full h-auto p-2 max-w-[7rem]" href="/">
-          YO
+        <Link className="relative inline-block w-full h-auto p-2 max-w-[7rem] font-extrabold" href="/">
+          TuneSpy
         </Link>
       </div>
 

@@ -1,268 +1,189 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Upload, Music, AudioLines, PlayCircle, Download, Clock } from 'lucide-react'
+import { useState } from "react";
+import { chordsResponseSchema } from "~/schemas";
+import { Upload, Sparkles, Music } from 'lucide-react';
 
-interface ChordData {
-  start: number
-  end: number
-  chord: string
-}
+export default function Page() {
+  const [isPending, setIsPending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
-interface ApiResponse {
-  lab_data: ChordData[]
-}
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsPending(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
 
-export default function ChordRecognitionPage() {
-  const [file, setFile] = useState<File | null>(null)
-  const [useLargeVocab, setUseLargeVocab] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [results, setResults] = useState<ChordData[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-      setError(null)
-      setResults(null)
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!file) {
-      setError('Please select an audio file')
-      return
-    }
-
-    setIsProcessing(true)
-    setError(null)
+    const form = event.currentTarget;
+    const formData = new FormData(form);
 
     try {
-      const formData = new FormData()
-      formData.append('audio_file', file)
-      formData.append('use_large_vocabulary', useLargeVocab.toString())
-
-      const response = await fetch('http://127.0.0.1:8000/recognize-chords/', {
-        method: 'POST',
+      const response = await fetch("/api/recognize-chords", {
+        method: "POST",
         body: formData,
-      })
+      });
 
-      if (!response.ok) {
-        throw new Error('Failed to process audio file')
+      const jsonResult = await response.json();
+      const result = chordsResponseSchema.parse(jsonResult)
+
+      if (!response.ok || !result.success) {
+        setErrorMessage(result.error || "An unexpected error occurred");
+      } else {
+        setSuccessMessage("Chords detected and song saved successfully! Please navigate to the library tab to view your songs.");
       }
-
-      const data: ApiResponse = await response.json()
-      setResults(data.lab_data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setErrorMessage("Unexpected error occurred");
     } finally {
-      setIsProcessing(false)
+      setIsPending(false);
     }
   }
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = (seconds % 60).toFixed(1)
-    return `${mins}:${secs.padStart(4, '0')}`
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragOver(true);
   }
 
-  const downloadResults = () => {
-    if (!results) return
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setDragOver(false)
+  }
 
-    const labContent = results
-      .map(chord => `${chord.start.toFixed(3)} ${chord.end.toFixed(3)} ${chord.chord}`)
-      .join('\n')
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false)
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && (files[0].type === 'audio/wav' || files[0].type === 'audio/mp3')) {
+      setSelectedFile(files[0]);
+      const fileInput = document.getElementById('audio_file');
+      fileInput.files = files;
+    }
+  }
 
-    const blob = new Blob([labContent], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${file?.name?.split('.')[0] || 'chords'}.lab`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+  const handleFileChange = (e) => {
+    if (e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100
+            dark:from-slate-800 dark:via-indigo-800 dark:to-purple-900">
       {/* Header */}
-      <div className="border-b border-white/10 bg-black/20 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-violet-500 rounded-lg flex items-center justify-center">
-              <Music className="w-5 h-5 text-white" />
+      <div className="flex">
+        <div className="flex flex-col w-full overflow-y-hidden mt-0 md:mt-4 border-b">
+          <div className="flex justify-between py-4 px-6 items-center">
+            <div className="py-1.5">
+              <h1 className="font-serif font-light max-w-full line-clamp-1 break-all select-none whitespace-pre-wrap text-[28px] lg:text-[40px]">Create</h1>
             </div>
-            <h1 className="text-xl font-bold text-white">hi</h1>
           </div>
         </div>
       </div>
+      {/* Main Content */}
+      <div className="p-6 max-w-2-xl mx-auto">
+        <div className="bg-white/80 dark:bg-black/50 backdrop-blur-sm border border-gray-200 rounded-3xl p-8 shadow-xl dark:shadow-lg">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 mb-4 shadow-lg">
+              <Music className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-serif mb-2">Upload Song</h1>
+            <p className="text-lg">Transcribe chord progressions from your audio using AI</p>
+          </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            AI Chord Recognition
-          </h2>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            Upload your audio file and let our advanced BTC model analyze and identify chord progressions with high accuracy.
-          </p>
-        </div>
-
-        {/* Main Form Card */}
-        <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl p-8 mb-8">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* File Upload */}
-            <div>
-              <label className="block text-white font-medium mb-4">
-                Audio File
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="audio_file" className="block text-sm font-semibold mb-3">
+                Audio File (WAV or MP3)
               </label>
-              <div className="relative">
+              <div className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 cursor-pointer group ${
+                    dragOver
+                      ? 'border-blue-400 bg-blue-50'
+                      : selectedFile
+                      ? 'border-green-400 bg-green-50'
+                      : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => document.getElementById('audio_file')?.click()}
+                onChange={handleFileChange}
+              >
                 <input
+                  id="audio_file"
+                  name="audio_file"
                   type="file"
                   accept=".wav,.mp3"
-                  onChange={handleFileChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  disabled={isProcessing}
+                  required
+                  className="hidden"
                 />
-                <div className={`
-                  border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200
-                  ${file 
-                    ? 'border-purple-500 bg-purple-500/10' 
-                    : 'border-gray-600 hover:border-purple-500 hover:bg-purple-500/5'
-                  }
-                  ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                `}>
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  {file ? (
-                    <div>
-                      <p className="text-white font-medium">{file.name}</p>
-                      <p className="text-gray-400 text-sm mt-1">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
+                <div className="flex flex-col items-center space-y-4">
+                  <div className={`p-4 rounded-full transition-all duration-300 ${
+                    selectedFile 
+                      ? 'bg-green-100 ring-4 ring-green-200'  
+                      : 'bg-gray-100 group-hover:bg-blue-100 group-hover:ring-4 group-hover:ring-blue-200'
+                  }`}>
+                    <Upload className={`w-8 h-8 transition-colors text-gray-800 ${
+                      selectedFile ? 'text-green-600' : 'group-hover:text-blue-600'
+                    }`} />
+                  </div>
+                  {selectedFile ? (
+                    <div className="space-y-2">
+                      <p className="text-green-700 font-semibold text-lg">{selectedFile.name}</p>
+                      <p className="text-green-600 text-sm">Ready to Process {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
                     </div>
                   ) : (
-                    <div>
-                      <p className="text-white mb-2">
-                        Drop your audio file here or click to browse
-                      </p>
-                      <p className="text-gray-400 text-sm">
-                        Supports MP3 and WAV files
-                      </p>
+                    <div className="space-y-2">
+                      <p className="font-semibold text-lg">Drop your audio file here</p>
+                      <p>or click to browse for a WAV or MP3</p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
-
-            {/* Vocabulary Option */}
-            <div>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={useLargeVocab}
-                  onChange={(e) => setUseLargeVocab(e.target.checked)}
-                  disabled={isProcessing}
-                  className="w-5 h-5 rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500 focus:ring-2"
-                />
-                <div>
-                  <span className="text-white font-medium">
-                    Use Large Vocabulary
-                  </span>
-                  <p className="text-gray-400 text-sm">
-                    Enables recognition of 170 chord types instead of just major/minor
-                  </p>
+            
+            <label htmlFor="use_large_vocabulary" className="cursor-pointer">
+              <div className="mb-4 flex items-start space-x-4 p-6 rounded-2xl bg-gradient-to-r from-gray-50 to-blue-50 dark:from-black/50 dark:to-purple-50 border border-gray-200">
+                <div className="relative mt-1">
+                  <input
+                    id="use_large_vocabulary"
+                    name="use_large_vocabulary"
+                    value="true"
+                    type="checkbox"
+                    className="peer sr-only"
+                  />
+                  <input name="use_large_vocabulary" value="false" type="hidden" />
+                  <div className="w-6 h-6 border-2 border-gray-400 rounded-md peer-checked:bg-blue-500 peer-checked:border-transparent transition-all cursor-pointer shadow-sm hover:shadow-md"></div>
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <svg className="w-4 h-4 opacity-0 peer-checked:opacity-100 transition-opacity" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
                 </div>
-              </label>
-            </div>
+                <label htmlFor="use_large_vocabulary" className="cursor-pointer">
+                  <span className="font-semibold text-base block">Use extended chord vocabulary</span>
+                  <span className="text-sm mt-1 block">Detect complex jazz chords, extensions, and advanced harmonic structures</span>
+                </label>
+              </div>
+            </label>
 
-            {/* Submit Button */}
             <button
               type="submit"
-              disabled={!file || isProcessing}
-              className={`
-                w-full py-4 px-6 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-3
-                ${!file || isProcessing
-                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white shadow-lg hover:shadow-purple-500/25'
-                }
-              `}
-            >
-              {isProcessing ? (
-                <>
-                  <AudioLines className="w-5 h-5 animate-pulse" />
-                  Processing Audio...
-                </>
-              ) : (
-                <>
-                  <PlayCircle className="w-5 h-5" />
-                  Analyze Chords
-                </>
-              )}
+              disabled={isPending}
+              className="w-full py-4 px-8 rounded-2xl font-semibold text-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:scale-100 disabled:cursor-not-allowed bg-gradient-to-r text-white from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-500 shadow-lg hover:shadow-xl disabled:shadow-md focus:ring-4 focus:ring-blue-200">
+              {isPending ? "Processing..." : "Detect Chords"}
             </button>
-          </form>
 
-          {/* Error Message */}
-          {error && (
-            <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <p className="text-red-400">{error}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Results Section */}
-        {results && (
-          <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-white flex items-center gap-3">
-                <Music className="w-6 h-6 text-purple-400" />
-                Chord Analysis Results
-              </h3>
-              <button
-                onClick={downloadResults}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                Download .lab
-              </button>
-            </div>
-
-            <div className="grid gap-4 max-h-96 overflow-y-auto">
-              {results.map((chord, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <Clock className="w-4 h-4" />
-                      <span className="font-mono text-sm">
-                        {formatTime(chord.start)} - {formatTime(chord.end)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-white font-bold text-lg">
-                      {chord.chord}
-                    </span>
-                    <p className="text-gray-400 text-sm">
-                      {(chord.end - chord.start).toFixed(1)}s duration
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {results.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-400">No chords detected in the audio file.</p>
-              </div>
+            {errorMessage && (
+              <p className="text-red-500 text-sm">{errorMessage}</p>
             )}
-          </div>
-        )}
+            {successMessage && (
+              <p className="text-green-600 text-sm">{successMessage}</p>
+            )}
+          </form>
+        </div>
       </div>
     </div>
-  )
+  );
 }

@@ -64,6 +64,7 @@ model User {
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+    songs         Song[]
 }
 
 model VerificationToken {
@@ -72,4 +73,14 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Song {
+    id            String   @id @default(cuid())
+    fileUrl       String?
+    title         String
+    labData       Json
+    createdAt     DateTime @default(now())
+    user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId        String
 }
