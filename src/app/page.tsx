@@ -78,7 +78,7 @@ export default function Page() {
             transition={{ duration: 0.8, delay: 0.3 }}
           >
             An advanced AI-powered chord detection tool. Upload your music, 
-            and let the machine learning algorithms identify every chord.
+            and let the deep learning algorithms identify every chord.
           </motion.p>
           <div className="flex justify-center align-items">
             <Button size="3" variant="classic">
