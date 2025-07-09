@@ -1,44 +1,40 @@
 # Project: Full Stack Chord Recognition App
 
-This project consists of a **Next.js/React frontend** and a **FastAPI backend** (BTC-ISMIR19) for audio chord recognition and song management.
+This project consists of a **Next.js frontend**, a **FastAPI backend (BTC-ISMIR19 by Jonggwon Park)**, and a **PostgreSQL database accessed via Prisma ORM** for audio chord recognition and song management.
 
 ---
+# Key Features
 
-## 📁 Folder Structure
+- **Audio Upload & Chord Detection:**  
+  Users can upload audio files (MP3 or WAV), and the integrated AI model will automatically detect and analyze the chords being played.
 
-```
-project-1/
-│
-├── BTC-ISMIR19/         # FastAPI backend
-│   ├── requirements.txt
-│   └── ... (FastAPI code)
-│
-├── src/                       # Next.js frontend
-│   └── ... (frontend code)
-│
-├── prisma/                    # Prisma schema for database
-│
-├── .env                       # Environment variables (see below)
-└── ...
-```
+- **Large Vocabulary Mode:**  
+  When uploading audio, users can enable a "large vocabulary" option, allowing the deep learning model to perform more accurate and detailed chord analysis.
+
+- **Personal Song Library:**  
+  Each user has access to a personal library where they can view all their uploaded songs and select any song to see its detected chords.
+
+- **Authentication & Account Management:**  
+  Secure authentication is implemented using NextAuth.js Credentials Provider. Users must create an account and log in to access the application's main features.
+
+- **User-Friendly Interface:**  
+  The app provides a clean, intuitive interface for uploading files, managing your song library, and viewing chord progressions.
 
 ---
-
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. **Clone the repository**
 
 ```sh
-git clone <your-repo-url>
-cd project-1
+git clone my-repo-url
+cd TuneSpy
 ```
 
 ---
 
 ### 2. **Set up environment variables**
 
-- Copy `.env.example` to `.env` and fill in your values (DB, secrets, etc).
-- For the backend, ensure any required config files (e.g., `run_config.yaml`) are present in `btc-ismir19-myOwn`.
+Copy `.env.example` to `.env` and fill in your values (DB and secret).
 
 ---
 
@@ -47,8 +43,8 @@ cd project-1
 #### Frontend (Next.js)
 
 ```sh
-cd project-1
-pnpm install   # or yarn install / npm install
+cd TuneSpy
+npm install
 ```
 
 #### Backend (FastAPI)
@@ -62,18 +58,12 @@ pip install -r requirements.txt
 
 ---
 
-### 4. **Set up the database**
-
-If using PostgreSQL (recommended):
+### 4. **Set up the database (Prisma)**
 
 ```sh
 # From project root
-pnpm prisma migrate dev
-# or
-npx prisma migrate dev
+npm run db:push
 ```
-
-Or use provided `start-database.sh` script.
 
 ---
 
@@ -82,32 +72,15 @@ Or use provided `start-database.sh` script.
 ```sh
 cd BTC-ISMIR19
 source .venv/bin/activate
-uvicorn main:app --reload
-# or if your entrypoint is different:
-# uvicorn api:app --reload
+uvicorn api:app --reload
 ```
-
-- The backend will be available at [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- API docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 ---
 
 ### 6. **Run the frontend (Next.js)**
 
 ```sh
-cd project-1
-pnpm dev
-# or
+cd TuneSpy
 npm run dev
-# or
-yarn dev
 ```
-
-- The frontend will be available at [http://localhost:3000](http://localhost:3000)
-
 ---
-
-
-## 📄 License
-
-MIT (or your chosen license)
